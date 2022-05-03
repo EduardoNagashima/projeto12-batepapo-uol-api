@@ -7,19 +7,6 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-
-        // {from: 'João', 
-        // to: 'Todos', 
-        // text: 'oi galera', 
-        // type: 'message', 
-        // time: '20:04:37'}
-
-
-        // {name: 'João', 
-        // lastStatus: 12313123}
-
-
-
 const app = express();
 app.use(express.json());
 app.use(cors());
@@ -117,9 +104,16 @@ app.post('/messages', async (req, res)=>{
 
 app.get('/messages', async (req, res)=>{
 
+    const limit = parseInt(req.query.limit);
+
     try{
         const {user} = req.headers;
         const allMessages = await db.collection("messages").find({$or:[{to: "Todos"}, {type: "message"}, {from: user}, {to: user}]}).toArray();
+
+        if (limit){
+            res.send(allMessages.splice(0,limit));
+            return;
+        }
 
         res.send(allMessages);
         return;
@@ -133,51 +127,53 @@ app.get('/messages', async (req, res)=>{
 app.post('/status', async (req, res)=>{
     try{
         const {user} = req.headers;
-        const findSender = await db.collection("participants").findOne({name: user});
-    
+        let findSender = await db.collection("participants").findOne({name: user});
         if (!findSender){
             res.sendStatus(404);
             return;
         }
 
-        await db.collection("participants").updateOne({ 
-			findSender: user 
-		}, { $set: {time: `${dayjs().format('HH:mm:ss')}`} })
+        await db.collection("participants").updateOne(
+            {name: user},
+            { $set: {lastStatus: Date.now()} })
+        findSender = await db.collection("participants").findOne({name: user});
 
     }catch(e){
         console.log(e);
     }
-
     res.sendStatus(200);
 })
 
-// setInterval(()=>{
-//     const promisse = db.collection("participants").find({}).toArray();
+// app.delete('/messages')
+
+setInterval(()=>{
+    const promisse = db.collection("participants").find({}).toArray();
     
-//     promisse.then(res=>{
-//         res.forEach(el=>{
-//             console.log(el);
-//             db.collection("participants").deleteOne({name: el.name})
-//             .then(()=>{
-//                 console.log('Excluiu!')
-//             })
-//             .catch((e)=>{
-//                 console.log(e)
-//             })
-//             db.collection("messages").insertOne({
-//                 from: el.name, 
-//                 to: 'Todos', 
-//                 text: 'sai da sala...', 
-//                 type: 'status', 
-//                 time: Date.now()
-//             })
-//         })
-//     })
+    promisse.then(res=>{
+        res.forEach(el=>{
+            if (Date.now() - el.lastStatus >= 10000){
+                db.collection("participants").deleteOne({name: el.name})
+                .then(()=>{
+                  
+                })
+                .catch((e)=>{
+                    console.log(e)
+                })
+                db.collection("messages").insertOne({
+                    from: el.name, 
+                    to: 'Todos', 
+                    text: 'sai da sala...', 
+                    type: 'status', 
+                    time: Date.now()
+                })
+            }
+        })
+    })
 
-//     promisse.catch(err=>{
-//         console.log(err);
-//     })
+    promisse.catch(err=>{
+        console.log(err);
+    })
 
-// }, 15000);
+}, 15000);
 
 app.listen(5000);
