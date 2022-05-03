@@ -144,35 +144,31 @@ app.post('/status', async (req, res)=>{
     res.sendStatus(200);
 })
 
-// app.delete('/messages/:ID_DA_MENSAGEM', async(req, res)=>{
-//     const {user} = req.headers;
-//     const {ID_DA_MENSAGEM} = req.params;
+app.delete('/messages/:id', async(req, res)=>{
+    const {user} = req.headers;
+    const {id} = req.params;
 
-//     console.log(ID_DA_MENSAGEM)
-//     console.log(user)
-
-//     try{
-//         const msg = await db.collection('messages').find({_id: new ObjectId(ID_DA_MENSAGEM)});
-//         console.log(msg)
+    try{
+        const msg = await db.collection('messages').find({ _id: new ObjectId(id) }).toArray();
     
-//         if (!msg){
-//             res.sendStatus(404);
-//             return;
-//         }
-    
-//         if (msg.user !== user){
-//             res.sendStatus(401);
-//             return;
-//         }
+        if (!msg){
+            res.sendStatus(404);
+            return;
+        }
 
-//         await usersColection.deleteOne({ _id: new ObjectId(ID_DA_MENSAGEM) });
+        if (msg[0].from != user){
+            res.sendStatus(401);
+            return;
+        }
 
-//     } catch (e){
-//         console.log(e);
-//     }
+        await db.collection('messages').deleteOne({ _id: new ObjectId(id) });
 
-//     res.sendStatus(200);
-// })
+    } catch (e){
+        console.log(e);
+    }
+
+    res.sendStatus(200);
+})
 
 setInterval(()=>{
     const promisse = db.collection("participants").find({}).toArray();
