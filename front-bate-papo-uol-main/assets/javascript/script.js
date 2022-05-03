@@ -7,15 +7,12 @@ let buscarMensagens = true;
 
 perguntarNome();
 
-console.log("iniciou front")
-
 function perguntarNome() {
   nome = prompt("Digite seu lindo nome");
   registrarParticipante();
 }
 
 function registrarParticipante() {
-  console.log("registrando part")
   const dados = { name: nome };
   const requisicao = axios.post("http://localhost:5000/participants", dados);
   requisicao.then((response) => {
@@ -25,7 +22,6 @@ function registrarParticipante() {
 }
 
 function entrarNaSala() {
-  console.log("teste")
   carregarMensagens();
   carregarParticipantes();
   
@@ -35,7 +31,6 @@ function entrarNaSala() {
 }
 
 function carregarMensagens() {
-  console.log("pegando msgs");
   if (!buscarMensagens) return;
 
   const requisicao = axios.get("http://localhost:5000/messages?limit=50", {

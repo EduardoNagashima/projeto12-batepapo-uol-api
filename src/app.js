@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import {MongoClient} from "mongodb";
+import {MongoClient, ObjectId} from "mongodb";
 import joi from "joi";
 import dayjs from 'dayjs';
 import dotenv from "dotenv";
@@ -111,7 +111,7 @@ app.get('/messages', async (req, res)=>{
         const allMessages = await db.collection("messages").find({$or:[{to: "Todos"}, {type: "message"}, {from: user}, {to: user}]}).toArray();
 
         if (limit){
-            res.send(allMessages.splice(0,limit));
+            res.send(allMessages.splice(-limit));
             return;
         }
 
@@ -144,7 +144,35 @@ app.post('/status', async (req, res)=>{
     res.sendStatus(200);
 })
 
-// app.delete('/messages')
+// app.delete('/messages/:ID_DA_MENSAGEM', async(req, res)=>{
+//     const {user} = req.headers;
+//     const {ID_DA_MENSAGEM} = req.params;
+
+//     console.log(ID_DA_MENSAGEM)
+//     console.log(user)
+
+//     try{
+//         const msg = await db.collection('messages').find({_id: new ObjectId(ID_DA_MENSAGEM)});
+//         console.log(msg)
+    
+//         if (!msg){
+//             res.sendStatus(404);
+//             return;
+//         }
+    
+//         if (msg.user !== user){
+//             res.sendStatus(401);
+//             return;
+//         }
+
+//         await usersColection.deleteOne({ _id: new ObjectId(ID_DA_MENSAGEM) });
+
+//     } catch (e){
+//         console.log(e);
+//     }
+
+//     res.sendStatus(200);
+// })
 
 setInterval(()=>{
     const promisse = db.collection("participants").find({}).toArray();
@@ -164,7 +192,7 @@ setInterval(()=>{
                     to: 'Todos', 
                     text: 'sai da sala...', 
                     type: 'status', 
-                    time: Date.now()
+                    time: `${dayjs().format('HH:mm:ss')}`
                 })
             }
         })
