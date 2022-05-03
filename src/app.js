@@ -119,8 +119,8 @@ app.get('/messages', async (req, res)=>{
 
     try{
         const {user} = req.headers;
-        const allMessages = await db.collection("messages").find({}).toArray();
-        console.log(allMessages);
+        const allMessages = await db.collection("messages").find({$or:[{to: "Todos"}, {type: "message"}, {from: user}, {to: user}]}).toArray();
+
         res.send(allMessages);
         return;
     } catch(e){
@@ -147,8 +147,37 @@ app.post('/status', async (req, res)=>{
     }catch(e){
         console.log(e);
     }
-    
+
     res.sendStatus(200);
 })
+
+// setInterval(()=>{
+//     const promisse = db.collection("participants").find({}).toArray();
+    
+//     promisse.then(res=>{
+//         res.forEach(el=>{
+//             console.log(el);
+//             db.collection("participants").deleteOne({name: el.name})
+//             .then(()=>{
+//                 console.log('Excluiu!')
+//             })
+//             .catch((e)=>{
+//                 console.log(e)
+//             })
+//             db.collection("messages").insertOne({
+//                 from: el.name, 
+//                 to: 'Todos', 
+//                 text: 'sai da sala...', 
+//                 type: 'status', 
+//                 time: Date.now()
+//             })
+//         })
+//     })
+
+//     promisse.catch(err=>{
+//         console.log(err);
+//     })
+
+// }, 15000);
 
 app.listen(5000);
